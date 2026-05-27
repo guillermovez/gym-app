@@ -1,1 +1,154 @@
-<p>dashboard works!</p>
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  .layout { display: flex; height: 580px; font-family: var(--font-sans); background: var(--color-background-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; border: 0.5px solid var(--color-border-tertiary); }
+  .sidebar { width: 240px; background: var(--color-background-primary); border-right: 0.5px solid var(--color-border-tertiary); display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-brand { padding: 20px 20px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .brand-icon { width: 32px; height: 32px; background: #1A73E8; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 17px; flex-shrink: 0; }
+  .brand-name { font-size: 15px; font-weight: 500; color: var(--color-text-primary); }
+  .brand-sub { font-size: 11px; color: var(--color-text-secondary); }
+  .nav { padding: 10px 12px; }
+  .nav-label { font-size: 11px; color: var(--color-text-tertiary); padding: 0 8px 5px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; cursor: pointer; font-size: 13.5px; color: var(--color-text-secondary); transition: background 0.15s; }
+  .nav-item:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
+  .nav-item.active { background: #E8F0FE; color: #1A73E8; }
+  .nav-item i { font-size: 18px; color: var(--color-text-tertiary); }
+  .nav-item.active i { color: #1A73E8; }
+  .nav-badge { margin-left: auto; background: #E8F0FE; color: #1A73E8; font-size: 11px; font-weight: 500; padding: 2px 7px; border-radius: 20px; }
+  .nav-badge.warn { background: #FEF3E2; color: #EA8600; }
+  .nav-divider { height: 0.5px; background: var(--color-border-tertiary); margin: 8px 12px; }
+  .sidebar-footer { margin-top: auto; padding: 12px; border-top: 0.5px solid var(--color-border-tertiary); display: flex; align-items: center; gap: 10px; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: #E8F0FE; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: #1A73E8; flex-shrink: 0; }
+  .avatar-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+  .avatar-role { font-size: 11px; color: var(--color-text-tertiary); }
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar { background: var(--color-background-primary); border-bottom: 0.5px solid var(--color-border-tertiary); padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 16px; }
+  .topbar-title { font-size: 16px; font-weight: 500; color: var(--color-text-primary); flex: 1; }
+  .topbar-search { display: flex; align-items: center; gap: 8px; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: 8px; padding: 6px 12px; font-size: 13px; color: var(--color-text-secondary); width: 200px; }
+  .btn-primary { display: flex; align-items: center; gap: 6px; background: #1A73E8; color: #fff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+  .content { padding: 22px 24px; flex: 1; overflow-y: auto; }
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 22px; }
+  .stat-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 16px; }
+  .stat-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-bottom: 10px; }
+  .stat-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 3px; }
+  .stat-value { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+  .stat-delta { font-size: 11px; margin-top: 3px; }
+  .section-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 12px; }
+  .clients-list { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; }
+  .client-row { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .client-row:last-child { border-bottom: none; }
+  .client-av { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; }
+  .client-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+  .client-plan { font-size: 11px; color: var(--color-text-secondary); }
+  .pill { font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+  .pill.active { background: #E6F4EA; color: #1E8E3E; }
+  .pill.warn { background: #FEF3E2; color: #EA8600; }
+  .pill.inactive { background: var(--color-background-secondary); color: var(--color-text-secondary); }
+</style>
+
+<h2 class="sr-only">Dashboard de gestión de gimnasios — versión 2 con menú compacto y métricas actualizadas.</h2>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon"><i class="ti ti-barbell" aria-hidden="true"></i></div>
+      <div>
+        <div class="brand-name">GymAdmin</div>
+        <div class="brand-sub">Panel de gestión</div>
+      </div>
+    </div>
+
+    <div class="nav">
+      <div class="nav-label">Principal</div>
+      <div class="nav-item active"><i class="ti ti-layout-dashboard" aria-hidden="true"></i> Dashboard</div>
+      <div class="nav-item"><i class="ti ti-users" aria-hidden="true"></i> Clientes <span class="nav-badge">248</span></div>
+      <div class="nav-item"><i class="ti ti-id-badge" aria-hidden="true"></i> Membresías <span class="nav-badge warn">14</span></div>
+    </div>
+
+    <div class="nav-divider"></div>
+
+    <div class="nav" style="padding-top:4px">
+      <div class="nav-label">Finanzas</div>
+      <div class="nav-item"><i class="ti ti-credit-card" aria-hidden="true"></i> Pagos</div>
+      <div class="nav-item"><i class="ti ti-chart-bar" aria-hidden="true"></i> Reportes</div>
+    </div>
+
+    <div class="nav-divider"></div>
+
+    <div class="nav" style="padding-top:4px">
+      <div class="nav-label">Sistema</div>
+      <div class="nav-item"><i class="ti ti-building" aria-hidden="true"></i> Sucursales</div>
+      <div class="nav-item"><i class="ti ti-settings" aria-hidden="true"></i> Configuración</div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="avatar">JL</div>
+      <div style="flex:1">
+        <div class="avatar-name">Jorge López</div>
+        <div class="avatar-role">Administrador</div>
+      </div>
+      <i class="ti ti-logout" style="font-size:17px; color:var(--color-text-tertiary); cursor:pointer;" aria-hidden="true"></i>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title">Dashboard</span>
+      <div class="topbar-search"><i class="ti ti-search" style="font-size:15px;" aria-hidden="true"></i> Buscar...</div>
+      <button class="btn-primary" onclick="sendPrompt('Ayúdame a crear el formulario de registro de clientes para Angular 21 con Tailwind')">
+        <i class="ti ti-user-plus" style="font-size:16px;" aria-hidden="true"></i> Registrar cliente ↗
+      </button>
+    </div>
+
+    <div class="content">
+      <div class="stats-grid">
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#E8F0FE; color:#1A73E8"><i class="ti ti-users" aria-hidden="true"></i></div>
+          <div class="stat-label">Clientes activos</div>
+          <div class="stat-value">248</div>
+          <div class="stat-delta" style="color:#1E8E3E">↑ +12 este mes</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#FEF3E2; color:#EA8600"><i class="ti ti-clock-exclamation" aria-hidden="true"></i></div>
+          <div class="stat-label">Membresías por vencer</div>
+          <div class="stat-value">14</div>
+          <div class="stat-delta" style="color:#EA8600">Esta semana</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#E6F4EA; color:#1E8E3E"><i class="ti ti-user-check" aria-hidden="true"></i></div>
+          <div class="stat-label">Nuevos este mes</div>
+          <div class="stat-value">23</div>
+          <div class="stat-delta" style="color:#1E8E3E">↑ +8 vs mes anterior</div>
+        </div>
+
+      </div>
+
+      <div class="section-title">Clientes recientes</div>
+      <div class="clients-list">
+        <div class="client-row">
+          <div class="client-av" style="background:#E8F0FE;color:#1A73E8">AM</div>
+          <div style="flex:1"><div class="client-name">Ana Martínez</div><div class="client-plan">Plan mensual · vence 10 jun</div></div>
+          <span class="pill active">Activo</span>
+        </div>
+        <div class="client-row">
+          <div class="client-av" style="background:#FEF3E2;color:#EA8600">CR</div>
+          <div style="flex:1"><div class="client-name">Carlos Ríos</div><div class="client-plan">Plan trimestral · vence 2 jun</div></div>
+          <span class="pill warn">Por vencer</span>
+        </div>
+        <div class="client-row">
+          <div class="client-av" style="background:#FCE8E6;color:#C5221F">LV</div>
+          <div style="flex:1"><div class="client-name">Lucía Vargas</div><div class="client-plan">Plan anual · venció 28 may</div></div>
+          <span class="pill inactive">Vencido</span>
+        </div>
+        <div class="client-row">
+          <div class="client-av" style="background:#E6F4EA;color:#1E8E3E">RP</div>
+          <div style="flex:1"><div class="client-name">Rodrigo Paredes</div><div class="client-plan">Plan mensual · vence 15 jun</div></div>
+          <span class="pill active">Activo</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
