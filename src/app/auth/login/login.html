@@ -1,16 +1,26 @@
 <main class="w-full p-4 h-screen flex items-center justify-center bg-gradient">
   <div class="flex flex-col bg-white p-8 rounded-3xl shadow-2xl w-full max-w-sm gap-6">
     <h1 class="text-2xl font-bold text-gray-800">Inicio de sesión</h1>
-    <form class="flex flex-col gap-6">
+    <form class="flex flex-col gap-6" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
       <div class="flex flex-col gap-4">
         <div class="flex flex-col gap-1">
-          <label class="text-gray-400 font-semibold text-sm" for="username">Correo electrónico</label>
-          <input class="p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" type="text" id="username" name="username" required>
+          <label class="text-gray-400 font-semibold text-sm" for="email">Correo electrónico</label>
+          <input class="p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" type="email" id="email" name="email" required formControlName="email">
         </div>
+        @if (isFieldInvalid("email")) {
+          <div class="bg-red-400 rounded-lg py-1 px-3">
+            <p class="text-white">El correo electrónico es inválido</p>
+          </div>
+        }
         <div class="flex flex-col gap-1">
           <label class="text-gray-400 font-semibold text-sm" for="password">Contraseña</label>
-          <input class="p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" type="password" id="password" name="password" required>
+          <input class="p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" type="password" id="password" name="password" required formControlName="password">
         </div>
+        @if (isFieldInvalid("password")) {
+          <div class="bg-red-400 rounded-lg py-1 px-3">
+            <p class="text-white">La contraseña es inválida</p>
+          </div>
+        }
       </div>
       <button class="bg-primary text-white rounded-lg p-2 w-auto text-lg font-bold" type="submit">Ingresar</button>
     </form>
