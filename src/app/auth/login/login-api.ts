@@ -2,13 +2,14 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { LoginResponse } from './login-response';
 import { Observable, tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class LoginApi {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:8080/auth/login';
+  private readonly apiUrl = `${environment.apiUrl}/auth/login`;
 
   login(email: string, password: string): Observable<LoginResponse> {
     const payload = { usuario: email, clave: password };
