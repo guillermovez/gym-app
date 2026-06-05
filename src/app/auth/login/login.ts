@@ -1,6 +1,7 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { LoginApi } from './login-api';
 
 type ButtonState = 'idle' | 'loading' | 'disabled';
 
@@ -13,8 +14,11 @@ type ButtonState = 'idle' | 'loading' | 'disabled';
 export class Login {
   loginForm = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email]),
-    password: new FormControl('', [Validators.required, Validators.minLength(6)]),
+    //HACK: regresar al minglength de 6 en producción
+    password: new FormControl('', [Validators.required, Validators.minLength(4)]),
   });
+
+  private readonly loginApi = inject(LoginApi);
 
   private readonly formStatus = toSignal(this.loginForm.statusChanges, {
     initialValue: this.loginForm.status,
@@ -22,14 +26,15 @@ export class Login {
 
   private readonly _buttonState = signal<ButtonState>('idle');
 
+  readonly errorMessage = signal<string | null>(null);
+
   readonly buttonState = computed<ButtonState>(() => {
     if (this.formStatus() === 'INVALID') return 'disabled';
     return this._buttonState();
   });
 
   readonly buttonIsDisabled = computed<boolean>(() => {
-    if (this._buttonState() === 'disabled' || this._buttonState() === 'loading') return true;
-    return false;
+    return this._buttonState() === 'disabled' || this._buttonState() === 'loading';
   });
 
   readonly buttonClasses = computed(() => {
@@ -47,14 +52,29 @@ export class Login {
     if (this.loginForm.invalid) return;
 
     this._buttonState.set('loading');
+    this.errorMessage.set(null);
 
-    try {
-      // TODO: Implement authtentication service to api rest
-      await new Promise((r) => setTimeout(r, 2000));
-    } finally {
-      this._buttonState.set('idle');
-    }
-    console.log(this.loginForm.value);
+    const { email, password } = this.loginForm.value;
+
+    this.loginApi.login(email!, password!)
+    .subscribe({
+      next: (response: any) => {
+        this._buttonState.set('idle');
+        //HACK: borrar el log
+        console.log('Login successful:', response);
+      },
+      error: (error: any) => {
+        this._buttonState.set('idle');
+        if (error.status === 401 || error.status === 403) {
+          console.log(error);
+          this.errorMessage.set('El correo electrónico o la contraseña son incorrectos.');
+        } else {
+          this.errorMessage.set(
+            'No se pudo establecer conexión con el servidor principal.',
+          );
+        }
+      },
+    });
   }
 
   isFieldInvalid(fieldName: string) {

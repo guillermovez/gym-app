@@ -21,6 +21,11 @@
             <p class="text-white">La contraseña es inválida</p>
           </div>
         }
+        @if (errorMessage()) {
+          <div class="bg-red-400 rounded-lg py-1 px-3">
+            <p class="text-white">{{ errorMessage() }}</p>
+          </div>
+        }
       </div>
       <button
         [class]="'rounded-lg p-2 w-full text-lg font-bold transition-all duration-200 ' + buttonClasses()"
