@@ -1,0 +1,92 @@
+<aside class="sidebar">
+  <header class="sidebar__header">
+    <div class="sidebar__brand">
+      <i
+        class="ti ti-barbell"
+        aria-hidden="true"
+      ></i>
+    </div>
+
+    <div class="sidebar__brand-content">
+      <h1 class="sidebar__title">
+        BoxControl
+      </h1>
+
+      <p class="sidebar__subtitle">
+        Panel de gestión
+      </p>
+    </div>
+  </header>
+
+  <div class="sidebar__content">
+    @for (section of sections(); track section.title) {
+      <nav
+        class="sidebar__nav"
+        [attr.aria-label]="section.title"
+      >
+        <div class="sidebar__section-title">
+          {{ section.title }}
+        </div>
+
+        <div class="sidebar__items">
+          @for (item of section.items; track item.route) {
+            <a
+              [routerLink]="item.route"
+              routerLinkActive="sidebar-link--active"
+              class="sidebar-link"
+            >
+              <i
+                class="ti sidebar-link__icon"
+                [class]="item.icon"
+                aria-hidden="true"
+              ></i>
+
+              <span class="sidebar-link__label">
+                {{ item.label }}
+              </span>
+
+              @if (item.badge) {
+                <span class="sidebar-link__badge">
+                  {{ item.badge }}
+                </span>
+              }
+            </a>
+          }
+        </div>
+      </nav>
+    }
+  </div>
+
+  <footer class="sidebar__footer">
+    <div class="sidebar-user">
+      <div class="sidebar-user__avatar">
+        {{ user().initials }}
+      </div>
+
+      <div class="sidebar-user__content">
+        <div class="sidebar-user__name">
+          {{ user().name }}
+        </div>
+
+        <div class="sidebar-user__role">
+          {{ user().role }}
+        </div>
+      </div>
+    </div>
+
+    <button
+      type="button"
+      class="sidebar-logout"
+      (click)="logout()"
+    >
+      <i
+        class="ti ti-logout"
+        aria-hidden="true"
+      ></i>
+
+      <span>
+        Cerrar sesión
+      </span>
+    </button>
+  </footer>
+</aside>
