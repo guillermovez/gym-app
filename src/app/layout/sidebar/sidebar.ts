@@ -46,15 +46,15 @@ export class Sidebar {
           route: '/app/dashboard',
         },
         {
-          label: 'Clientes',
+          label: 'Miembros',
           icon: 'ti-users',
-          route: '/app/clientes',
+          route: '/app/members',
           badge: '+12',
         },
         {
           label: 'Membresías',
           icon: 'ti-id',
-          route: '/app/membresias',
+          route: '/app/memberships',
         },
       ],
     },
@@ -64,7 +64,7 @@ export class Sidebar {
         {
           label: 'Configuración',
           icon: 'ti-settings',
-          route: '/app/configuracion',
+          route: '/app/configuration',
         },
       ],
     },
