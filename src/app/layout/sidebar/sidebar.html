@@ -1,82 +1,92 @@
-<aside class="w-60 bg-white border-r border-gray-200 flex flex-col flex-shrink-0 h-screen">
-  <div class="flex items-center gap-3 px-5 py-4 border-b border-gray-200">
-    <div
-      class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white text-base flex-shrink-0"
-    >
-      <i class="ti ti-barbell"></i>
+<aside class="sidebar">
+  <header class="sidebar__header">
+    <div class="sidebar__brand">
+      <i
+        class="ti ti-barbell"
+        aria-hidden="true"
+      ></i>
     </div>
-    <div>
-      <div class="text-sm font-medium text-gray-800">BoxControl</div>
-      <div class="text-[11px] text-gray-500">Panel de gestión</div>
+
+    <div class="sidebar__brand-content">
+      <h1 class="sidebar__title">
+        BoxControl
+      </h1>
+
+      <p class="sidebar__subtitle">
+        Panel de gestión
+      </p>
     </div>
+  </header>
+
+  <div class="sidebar__content">
+    @for (section of sections(); track section.title) {
+      <nav
+        class="sidebar__nav"
+        [attr.aria-label]="section.title"
+      >
+        <div class="sidebar__section-title">
+          {{ section.title }}
+        </div>
+
+        <div class="sidebar__items">
+          @for (item of section.items; track item.route) {
+            <a
+              [routerLink]="item.route"
+              routerLinkActive="sidebar-link--active"
+              class="sidebar-link"
+            >
+              <i
+                class="ti sidebar-link__icon"
+                [class]="item.icon"
+                aria-hidden="true"
+              ></i>
+
+              <span class="sidebar-link__label">
+                {{ item.label }}
+              </span>
+
+              @if (item.badge) {
+                <span class="sidebar-link__badge">
+                  {{ item.badge }}
+                </span>
+              }
+            </a>
+          }
+        </div>
+      </nav>
+    }
   </div>
 
-  <nav class="px-3 pt-3">
-    <div class="text-[10px] uppercase tracking-widest text-gray-400 px-2 pb-1">Principal</div>
-
-    <a
-      href="#"
-      class="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13.5px] transition-colors bg-blue-50 text-blue-600 font-medium"
-    >
-      <i class="ti ti-layout-dashboard text-lg text-blue-600"></i>
-      Dashboard
-    </a>
-
-    <a
-      href="#"
-      class="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13.5px] transition-colors text-gray-500 hover:bg-gray-100 hover:text-gray-800"
-    >
-      <i class="ti ti-users text-lg text-gray-400"></i>
-      Clientes
-      <span
-        class="ml-auto text-[11px] font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-600"
-      >
-        +12
-      </span>
-    </a>
-
-    <a
-      href="#"
-      class="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13.5px] transition-colors text-gray-500 hover:bg-gray-100 hover:text-gray-800"
-    >
-      <i class="ti ti-id text-lg text-gray-400"></i>
-      Membresías
-    </a>
-  </nav>
-
-  <div class="mx-3 my-2 border-t border-gray-200"></div>
-
-  <nav class="px-3">
-    <div class="text-[10px] uppercase tracking-widest text-gray-400 px-2 pb-1">Sistema</div>
-
-    <a
-      href="#"
-      class="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13.5px] text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-colors"
-    >
-      <i class="ti ti-settings text-lg text-gray-400"></i>
-      Configuración
-    </a>
-  </nav>
-
-  <div class="mt-auto border-t border-gray-200">
-    <div class="flex items-center gap-2.5 px-3.5 py-3">
-      <div
-        class="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center text-[12px] font-semibold text-blue-600 flex-shrink-0"
-      >
-        JL
+  <footer class="sidebar__footer">
+    <div class="sidebar-user">
+      <div class="sidebar-user__avatar">
+        {{ user().initials }}
       </div>
-      <div class="flex-1 min-w-0">
-        <div class="text-[13px] font-medium text-gray-800 truncate">Jorge López</div>
-        <div class="text-[11px] text-gray-400">Administrador</div>
+
+      <div class="sidebar-user__content">
+        <div class="sidebar-user__name">
+          {{ user().name }}
+        </div>
+
+        <div class="sidebar-user__role">
+          {{ user().role }}
+        </div>
       </div>
     </div>
-    <div class="px-3 pb-4">
-      <button
-        class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-red-50 text-red-600 text-[13px] font-medium hover:bg-red-100 transition-colors cursor-pointer"
-      >
-        <i class="ti ti-logout text-[17px]"></i>
+
+    <button
+      type="button"
+      class="sidebar-logout"
+      (click)="logout()"
+    >
+      <i
+        class="ti ti-logout"
+        aria-hidden="true"
+      ></i>
+
+      <span>
         Cerrar sesión
-      </button>
-    </div>
-  </div>
+      </span>
+    </button>
+  </footer>
 </aside>
