@@ -1,0 +1,451 @@
+<div class="bg-gray-50 min-h-screen p-8 font-sans">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-xl font-medium text-gray-800">Clientes</h1>
+      <p class="text-[12px] text-gray-500 mt-0.5">Gestión de clientes registrados</p>
+    </div>
+    <button
+      (click)="openCreateModal()"
+      class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-medium px-4 py-2 rounded-lg transition-colors cursor-pointer">
+      <i class="ti ti-user-plus text-base"></i> Agregar cliente
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="flex items-center gap-3 mb-5">
+    <div class="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2 flex-1 max-w-xs">
+      <i class="ti ti-search text-gray-400 text-base"></i>
+      <input
+        type="text"
+        placeholder="Buscar cliente..."
+        (input)="onFilterChange('text', $any($event.target).value)"
+        class="text-[13px] text-gray-700 outline-none bg-transparent w-full placeholder-gray-400" />
+    </div>
+    <select
+      (change)="onFilterChange('status', $any($event.target).value)"
+      class="bg-white border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-gray-600 outline-none cursor-pointer">
+      <option value="">Todos los estados</option>
+      <option value="active">Activo</option>
+      <option value="expiring">Por vencer</option>
+      <option value="expired">Vencido</option>
+    </select>
+    <select
+      (change)="onFilterChange('plan', $any($event.target).value)"
+      class="bg-white border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-gray-600 outline-none cursor-pointer">
+      <option value="">Todos los planes</option>
+      <option value="Mensual">Mensual</option>
+      <option value="Trimestral">Trimestral</option>
+      <option value="Anual">Anual</option>
+    </select>
+  </div>
+
+  <!-- Tabla -->
+  <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+
+    <!-- Table header -->
+    <div class="grid grid-cols-[2fr_2fr_1.2fr_1.2fr_1fr_auto] items-center px-5 py-2.5 border-b border-gray-100 bg-gray-50">
+      <span class="text-[11px] font-medium text-gray-500 uppercase tracking-wider">Cliente</span>
+      <span class="text-[11px] font-medium text-gray-500 uppercase tracking-wider">Contacto</span>
+      <span class="text-[11px] font-medium text-gray-500 uppercase tracking-wider">Plan</span>
+      <span class="text-[11px] font-medium text-gray-500 uppercase tracking-wider">Vencimiento</span>
+      <span class="text-[11px] font-medium text-gray-500 uppercase tracking-wider">Estado</span>
+      <span class="text-[11px] font-medium text-gray-500 uppercase tracking-wider">Acciones</span>
+    </div>
+
+    <!-- Rows -->
+    @for (client of paginated(); track client.id; let last = $last) {
+      <div
+        class="grid grid-cols-[2fr_2fr_1.2fr_1.2fr_1fr_auto] items-center px-5 py-3 hover:bg-gray-50 transition-colors"
+        [class.border-b]="!last"
+        [class.border-gray-100]="!last">
+
+        <div class="flex items-center gap-2.5">
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-semibold flex-shrink-0"
+            [class]="client.avatarBg + ' ' + client.avatarText">
+            {{ client.initials }}
+          </div>
+          <div>
+            <div class="text-[13px] font-medium text-gray-800">{{ client.name }} {{ client.lastName }}</div>
+            <div class="text-[11px] text-gray-400">DNI {{ client.dni }}</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="text-[13px] text-gray-700">{{ client.email }}</div>
+          <div class="text-[11px] text-gray-400">{{ client.phone }}</div>
+        </div>
+
+        <span class="text-[13px] text-gray-700">{{ client.plan }}</span>
+        <span class="text-[13px] text-gray-700">{{ client.expiresAt }}</span>
+
+        <span
+          class="text-[11px] font-medium px-2.5 py-0.5 rounded-full w-fit"
+          [class]="statusClass[client.status]">
+          {{ statusLabel[client.status] }}
+        </span>
+
+        <div class="flex items-center gap-1">
+          <button
+            (click)="openViewModal(client)"
+            class="w-7 h-7 rounded-lg hover:bg-blue-50 flex items-center justify-center text-gray-400 hover:text-blue-600 transition-colors" title="Ver perfil">
+            <i class="ti ti-eye text-base"></i>
+          </button>
+          <button
+            (click)="openEditModal(client)"
+            class="w-7 h-7 rounded-lg hover:bg-amber-50 flex items-center justify-center text-gray-400 hover:text-amber-600 transition-colors" title="Editar">
+            <i class="ti ti-edit text-base"></i>
+          </button>
+          <button
+            (click)="openDeleteModal(client)"
+            class="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-gray-400 hover:text-red-600 transition-colors" title="Eliminar">
+            <i class="ti ti-trash text-base"></i>
+          </button>
+        </div>
+      </div>
+    }
+
+    @if (paginated().length === 0) {
+      <div class="flex flex-col items-center justify-center py-14 text-gray-400">
+        <i class="ti ti-users-off text-4xl mb-3"></i>
+        <p class="text-[13px]">No se encontraron clientes</p>
+      </div>
+    }
+
+  </div>
+
+  <!-- Paginación -->
+  <div class="flex items-center justify-between mt-4">
+    <span class="text-[12px] text-gray-500">
+      Mostrando {{ paginated().length }} de {{ filtered().length }} clientes
+    </span>
+    <div class="flex items-center gap-1">
+      <button
+        (click)="goToPage(currentPage() - 1)"
+        [disabled]="currentPage() === 1"
+        class="w-8 h-8 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-400 hover:bg-gray-50 transition-colors disabled:opacity-40">
+        <i class="ti ti-chevron-left text-sm"></i>
+      </button>
+
+      @for (page of pages(); track page) {
+        <button
+          (click)="goToPage(page)"
+          class="w-8 h-8 rounded-lg text-[13px] font-medium transition-colors"
+          [class]="page === currentPage()
+            ? 'bg-blue-600 text-white'
+            : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-50'">
+          {{ page }}
+        </button>
+      }
+
+      <button
+        (click)="goToPage(currentPage() + 1)"
+        [disabled]="currentPage() === totalPages()"
+        class="w-8 h-8 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-400 hover:bg-gray-50 transition-colors disabled:opacity-40">
+        <i class="ti ti-chevron-right text-sm"></i>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- MODAL — Crear / Editar (comparten el mismo formulario)    -->
+<!-- ════════════════════════════════════════════════════════ -->
+@if (modalMode() === 'create' || modalMode() === 'edit') {
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center"
+    [class.modal-enter]="!isClosing()"
+    [class.modal-exit]="isClosing()"
+    style="background: rgba(0,0,0,0.35)"
+    (click)="closeModal()">
+
+    <div
+      class="bg-white rounded-2xl border border-gray-200 w-full max-w-md mx-4 overflow-hidden"
+      [class.modal-box-enter]="!isClosing()"
+      [class.modal-box-exit]="isClosing()"
+      (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div>
+          <div class="text-[15px] font-medium text-gray-800">
+            {{ modalMode() === 'edit' ? 'Editar cliente' : 'Nuevo cliente' }}
+          </div>
+          <div class="text-[11px] text-gray-500">
+            {{ modalMode() === 'edit' ? 'Actualiza los datos del cliente' : 'Completa los datos del cliente' }}
+          </div>
+        </div>
+        <button
+          (click)="closeModal()"
+          class="w-7 h-7 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
+          <i class="ti ti-x text-base"></i>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <form [formGroup]="form" (ngSubmit)="saveClient()" class="px-6 py-5 space-y-4">
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[11px] font-medium text-gray-600 mb-1">
+              Nombres <span class="text-red-400">*</span>
+            </label>
+            <input
+              formControlName="name"
+              type="text"
+              placeholder="Ana"
+              class="w-full border rounded-lg px-3 py-2 text-[13px] text-gray-800 outline-none transition-colors placeholder-gray-300"
+              [class.border-red-300]="fieldError('name')"
+              [class.border-gray-200]="!fieldError('name')" />
+            @if (fieldError('name')) {
+              <p class="text-[11px] text-red-500 mt-0.5">Ingresa un nombre válido</p>
+            }
+          </div>
+          <div>
+            <label class="block text-[11px] font-medium text-gray-600 mb-1">
+              Apellidos <span class="text-red-400">*</span>
+            </label>
+            <input
+              formControlName="lastName"
+              type="text"
+              placeholder="Martínez"
+              class="w-full border rounded-lg px-3 py-2 text-[13px] text-gray-800 outline-none transition-colors placeholder-gray-300"
+              [class.border-red-300]="fieldError('lastName')"
+              [class.border-gray-200]="!fieldError('lastName')" />
+            @if (fieldError('lastName')) {
+              <p class="text-[11px] text-red-500 mt-0.5">Ingresa un apellido válido</p>
+            }
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-medium text-gray-600 mb-1">
+            DNI <span class="text-red-400">*</span>
+          </label>
+          <input
+            formControlName="dni"
+            type="text"
+            placeholder="45123890"
+            maxlength="8"
+            class="w-full border rounded-lg px-3 py-2 text-[13px] text-gray-800 outline-none transition-colors placeholder-gray-300"
+            [class.border-red-300]="fieldError('dni')"
+            [class.border-gray-200]="!fieldError('dni')" />
+          @if (fieldError('dni')) {
+            <p class="text-[11px] text-red-500 mt-0.5">El DNI debe tener 8 dígitos</p>
+          }
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-medium text-gray-600 mb-1">
+            Correo electrónico <span class="text-red-400">*</span>
+          </label>
+          <input
+            formControlName="email"
+            type="email"
+            placeholder="ana@gmail.com"
+            class="w-full border rounded-lg px-3 py-2 text-[13px] text-gray-800 outline-none transition-colors placeholder-gray-300"
+            [class.border-red-300]="fieldError('email')"
+            [class.border-gray-200]="!fieldError('email')" />
+          @if (fieldError('email')) {
+            <p class="text-[11px] text-red-500 mt-0.5">Ingresa un correo válido</p>
+          }
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-medium text-gray-600 mb-1">
+            Teléfono <span class="text-red-400">*</span>
+          </label>
+          <input
+            formControlName="phone"
+            type="tel"
+            placeholder="+51 987 654 321"
+            class="w-full border rounded-lg px-3 py-2 text-[13px] text-gray-800 outline-none transition-colors placeholder-gray-300"
+            [class.border-red-300]="fieldError('phone')"
+            [class.border-gray-200]="!fieldError('phone')" />
+          @if (fieldError('phone')) {
+            <p class="text-[11px] text-red-500 mt-0.5">Ingresa un teléfono válido</p>
+          }
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-medium text-gray-600 mb-1">
+            Plan de membresía <span class="text-red-400">*</span>
+          </label>
+          <select
+            formControlName="plan"
+            class="w-full border rounded-lg px-3 py-2 text-[13px] text-gray-700 outline-none transition-colors bg-white cursor-pointer"
+            [class.border-red-300]="fieldError('plan')"
+            [class.border-gray-200]="!fieldError('plan')">
+            <option value="">Seleccionar plan</option>
+            <option value="Mensual">Mensual</option>
+            <option value="Trimestral">Trimestral</option>
+            <option value="Anual">Anual</option>
+          </select>
+          @if (fieldError('plan')) {
+            <p class="text-[11px] text-red-500 mt-0.5">Selecciona un plan</p>
+          }
+        </div>
+
+        <!-- Footer -->
+        <div class="flex items-center justify-end gap-2 px-0 pt-2 border-t border-gray-100">
+          <button
+            type="button"
+            (click)="closeModal()"
+            class="px-4 py-2 rounded-lg border border-gray-200 text-[13px] text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer">
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-medium transition-colors cursor-pointer">
+            {{ modalMode() === 'edit' ? 'Guardar cambios' : 'Guardar cliente' }}
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- MODAL — Ver detalle (solo lectura)                         -->
+<!-- ════════════════════════════════════════════════════════ -->
+@if (modalMode() === 'view' && selectedClient(); as client) {
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center"
+    [class.modal-enter]="!isClosing()"
+    [class.modal-exit]="isClosing()"
+    style="background: rgba(0,0,0,0.35)"
+    (click)="closeModal()">
+
+    <div
+      class="bg-white rounded-2xl border border-gray-200 w-full max-w-md mx-4 overflow-hidden"
+      [class.modal-box-enter]="!isClosing()"
+      [class.modal-box-exit]="isClosing()"
+      (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div class="flex items-center gap-3">
+          <div
+            class="w-11 h-11 rounded-full flex items-center justify-center text-[13px] font-semibold flex-shrink-0"
+            [class]="client.avatarBg + ' ' + client.avatarText">
+            {{ client.initials }}
+          </div>
+          <div>
+            <div class="text-[15px] font-medium text-gray-800">{{ client.name }} {{ client.lastName }}</div>
+            <span
+              class="text-[11px] font-medium px-2 py-0.5 rounded-full"
+              [class]="statusClass[client.status]">
+              {{ statusLabel[client.status] }}
+            </span>
+          </div>
+        </div>
+        <button
+          (click)="closeModal()"
+          class="w-7 h-7 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
+          <i class="ti ti-x text-base"></i>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="px-6 py-5 space-y-3">
+        <div class="flex items-center gap-3 py-2 border-b border-gray-50">
+          <i class="ti ti-id-badge text-gray-400 text-base w-5"></i>
+          <div>
+            <div class="text-[11px] text-gray-400">DNI</div>
+            <div class="text-[13px] text-gray-800">{{ client.dni }}</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 py-2 border-b border-gray-50">
+          <i class="ti ti-mail text-gray-400 text-base w-5"></i>
+          <div>
+            <div class="text-[11px] text-gray-400">Correo electrónico</div>
+            <div class="text-[13px] text-gray-800">{{ client.email }}</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 py-2 border-b border-gray-50">
+          <i class="ti ti-phone text-gray-400 text-base w-5"></i>
+          <div>
+            <div class="text-[11px] text-gray-400">Teléfono</div>
+            <div class="text-[13px] text-gray-800">{{ client.phone }}</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 py-2 border-b border-gray-50">
+          <i class="ti ti-credit-card text-gray-400 text-base w-5"></i>
+          <div>
+            <div class="text-[11px] text-gray-400">Plan de membresía</div>
+            <div class="text-[13px] text-gray-800">{{ client.plan }}</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 py-2">
+          <i class="ti ti-calendar text-gray-400 text-base w-5"></i>
+          <div>
+            <div class="text-[11px] text-gray-400">Vencimiento</div>
+            <div class="text-[13px] text-gray-800">{{ client.expiresAt }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="flex items-center justify-end gap-2 px-6 py-4 border-t border-gray-100 bg-gray-50">
+        <button
+          (click)="closeModal()"
+          class="px-4 py-2 rounded-lg border border-gray-200 text-[13px] text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer">
+          Cerrar
+        </button>
+        <button
+          (click)="switchToEdit()"
+          class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-medium transition-colors cursor-pointer">
+          <i class="ti ti-edit text-base"></i> Editar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- MODAL — Confirmar eliminación                              -->
+<!-- ════════════════════════════════════════════════════════ -->
+@if (modalMode() === 'delete' && selectedClient(); as client) {
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center"
+    [class.modal-enter]="!isClosing()"
+    [class.modal-exit]="isClosing()"
+    style="background: rgba(0,0,0,0.35)"
+    (click)="closeModal()">
+
+    <div
+      class="bg-white rounded-2xl border border-gray-200 w-full max-w-sm mx-4 overflow-hidden"
+      [class.modal-box-enter]="!isClosing()"
+      [class.modal-box-exit]="isClosing()"
+      (click)="$event.stopPropagation()">
+
+      <div class="px-6 pt-6 pb-2 flex flex-col items-center text-center">
+        <div class="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-500 text-xl mb-3">
+          <i class="ti ti-alert-triangle"></i>
+        </div>
+        <div class="text-[15px] font-medium text-gray-800">¿Eliminar cliente?</div>
+        <p class="text-[13px] text-gray-500 mt-1.5">
+          Esta acción eliminará a <span class="font-medium text-gray-700">{{ client.name }} {{ client.lastName }}</span>
+          de forma permanente. No se puede deshacer.
+        </p>
+      </div>
+
+      <div class="flex items-center justify-center gap-2 px-6 py-5">
+        <button
+          (click)="closeModal()"
+          class="flex-1 px-4 py-2 rounded-lg border border-gray-200 text-[13px] text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer">
+          Cancelar
+        </button>
+        <button
+          (click)="confirmDelete()"
+          class="flex-1 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-[13px] font-medium transition-colors cursor-pointer">
+          Sí, eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+}
