@@ -15,8 +15,7 @@ type ButtonState = 'idle' | 'loading' | 'disabled';
 export class Login {
   loginForm = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email]),
-    //HACK: regresar al minglength de 6 en producción
-    password: new FormControl('', [Validators.required, Validators.minLength(4)]),
+    password: new FormControl('', [Validators.required, Validators.minLength(6)]),
   });
 
   private readonly authApi = inject(AuthApi);
@@ -62,9 +61,6 @@ export class Login {
     .subscribe({
       next: (response: any) => {
         this._buttonState.set('idle');
-        //HACK: borrar el logs
-        console.log('Login successful:', response);
-
         this.route.navigate(['/app/dashboard']);
       },
       error: (error: any) => {
