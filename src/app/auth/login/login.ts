@@ -1,7 +1,8 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { LoginApi } from './login-api';
+import { AuthApi } from '../auth-api';
+import { Router } from '@angular/router';
 
 type ButtonState = 'idle' | 'loading' | 'disabled';
 
@@ -14,11 +15,11 @@ type ButtonState = 'idle' | 'loading' | 'disabled';
 export class Login {
   loginForm = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email]),
-    //HACK: regresar al minglength de 6 en producción
-    password: new FormControl('', [Validators.required, Validators.minLength(4)]),
+    password: new FormControl('', [Validators.required, Validators.minLength(6)]),
   });
 
-  private readonly loginApi = inject(LoginApi);
+  private readonly authApi = inject(AuthApi);
+  private route = inject(Router);
 
   private readonly formStatus = toSignal(this.loginForm.statusChanges, {
     initialValue: this.loginForm.status,
@@ -56,12 +57,11 @@ export class Login {
 
     const { email, password } = this.loginForm.value;
 
-    this.loginApi.login(email!, password!)
+    this.authApi.login(email!, password!)
     .subscribe({
       next: (response: any) => {
         this._buttonState.set('idle');
-        //HACK: borrar el log
-        console.log('Login successful:', response);
+        this.route.navigate(['/app/dashboard']);
       },
       error: (error: any) => {
         this._buttonState.set('idle');
