@@ -109,7 +109,7 @@ export class Client {
   statusClass: Record<ClientStatus, string> = {
     active:   'bg-green-50 text-green-700',
     expiring: 'bg-amber-50 text-amber-600',
-    expired:  'bg-gray-100 text-gray-500',
+    expired:  'bg-red-50 text-red-600',
   };
 
   fieldError(field: string): boolean {
@@ -168,12 +168,6 @@ export class Client {
     });
     this.isClosing.set(false);
     this.modalMode.set('edit');
-  }
-
-  /** Pasa de modo "ver" a modo "editar" sin cerrar el modal */
-  switchToEdit(): void {
-    const client = this.selectedClient();
-    if (client) this.openEditModal(client);
   }
 
   // ════════════════════════════════════════════════════════
