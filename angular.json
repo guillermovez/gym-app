@@ -3,7 +3,7 @@
   "version": 1,
   "cli": {
     "packageManager": "pnpm",
-    "analytics": "e115da1f-a084-494e-b821-8549e9779a21"
+    "analytics": false
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -14,7 +14,8 @@
           "skipTests": true
         },
         "@schematics/angular:component": {
-          "skipTests": true
+          "skipTests": true,
+          "style": "none"
         },
         "@schematics/angular:directive": {
           "skipTests": true
@@ -51,7 +52,8 @@
               }
             ],
             "styles": [
-              "src/styles.css"
+              "src/styles.css",
+              "node_modules/@tabler/icons-webfont/dist/tabler-icons.min.css"
             ]
           },
           "configurations": {
@@ -73,7 +75,13 @@
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.development.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"

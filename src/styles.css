@@ -1,3 +1,19 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import 'tailwindcss';
+
+@theme {
+  --color-primary: oklch(0.57 0.22 277.6deg);
+  --color-secondary: oklch(0.555 0.059 276deg);
+  /* --color-text: oklch(0.209 0.015 272deg); */
+  /* --primary-dark: oklch(0.51 0.19 274deg); */
+  /* --surface: oklch(1 0 0); */
+  /* --bg: oklch(0.974 0.008 280deg); */
+  /* --border: oklch(0.918 0.022 240deg); */
+  /* --muted: oklch(0.734 0.038 293deg); */
+  /* --green: oklch(0.680 0.163 166deg); */
+  /* --red: oklch(0.628 0.239 27deg); */
+  /* --font-display: 'Syne', sans-serif; */
+  /* --font-body: 'DM Sans', sans-serif; */
+  /* --ease: 0.22s cubic-bezier(.4, 0, .2, 1); */
+}

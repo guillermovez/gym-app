@@ -1,0 +1,82 @@
+<main class="dashboard">
+  <header class="dashboard-header">
+    <div>
+      <h1 class="dashboard-header__title">
+        Bienvenido, {{ userName() }} 👋
+      </h1>
+
+      <p class="dashboard-header__subtitle">
+        {{ formattedDate() }}
+      </p>
+    </div>
+  </header>
+
+  <div class="dashboard-content">
+    <section class="metrics-grid">
+      @for (metric of metrics(); track metric.label) {
+        <article class="metric-card">
+          <div
+            class="metric-card__icon"
+            [class]="getMetricCardClass(metric.variant)"
+          >
+            <i
+              class="ti"
+              [class]="metric.icon"
+              aria-hidden="true"
+            ></i>
+          </div>
+
+          <div class="metric-card__label">
+            {{ metric.label }}
+          </div>
+
+          <div class="metric-card__value">
+            {{ metric.value }}
+          </div>
+
+          <div class="metric-card__change">
+            {{ metric.change }}
+          </div>
+        </article>
+      }
+    </section>
+
+    <section class="recent-clients">
+      <div class="recent-clients__header">
+        <h2 class="recent-clients__title">
+          Clientes recientes
+        </h2>
+      </div>
+
+      <div class="recent-clients__list">
+        @for (client of recentClients(); track client.email) {
+          <article class="client-item">
+            <div
+              class="client-avatar"
+              [class]="getAvatarClass(client.status)"
+            >
+              {{ client.initials }}
+            </div>
+
+            <div class="client-content">
+              <div class="client-content__name">
+                {{ client.name }}
+              </div>
+
+              <div class="client-content__email">
+                {{ client.email }}
+              </div>
+            </div>
+
+            <span
+              class="client-status"
+              [class]="getStatusClass(client.status)"
+            >
+              {{ getStatusLabel(client.status) }}
+            </span>
+          </article>
+        }
+      </div>
+    </section>
+  </div>
+</main>
