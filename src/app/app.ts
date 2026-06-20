@@ -1,9 +1,9 @@
 import { Component, signal } from '@angular/core';
-import { Client } from './client/client';
+import { Member } from './client/member';
 
 @Component({
   selector: 'app-root',
-  imports: [Client],
+  imports: [Member],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
