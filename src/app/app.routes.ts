@@ -3,12 +3,13 @@ import { Login } from './auth/login/login';
 import { Layout } from './layout/layout';
 import { Dashboard } from './dashboard/dashboard';
 import { authGuard } from './auth/auth-guard';
+import { Member } from './member/member';
 
 export const routes: Routes = [
   {
     path: '',
     component: Login,
-    title: 'Inicio de sesión'
+    title: 'Inicio de sesión',
   },
   {
     path: 'app',
@@ -19,7 +20,12 @@ export const routes: Routes = [
         path: 'dashboard',
         component: Dashboard,
         title: 'Dashboard',
-      }
-    ]
-  }
+      },
+      {
+        path: 'members',
+        component: Member,
+        title: 'Miembros',
+      },
+    ],
+  },
 ];
