@@ -1,0 +1,506 @@
+<main class="page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Miembros</h1>
+      <p class="page-subtitle">Gestión de miembros registrados</p>
+    </div>
+    <button
+      type="button"
+      (click)="openCreateModal()"
+      class="btn btn--primary"
+      aria-label="Agregar nuevo miembro">
+      <i class="ti ti-user-plus" aria-hidden="true"></i> Agregar miembro
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="toolbar" role="search" aria-label="Filtros de miembros">
+    <div class="search-wrap">
+      <i class="ti ti-search search-icon" aria-hidden="true"></i>
+      <input
+        type="search"
+        class="search-input"
+        placeholder="Buscar miembro..."
+        aria-label="Buscar miembro por nombre, correo o DNI"
+        (input)="onFilterChange('text', $any($event.target).value)" />
+    </div>
+
+    <select
+      class="filter-select"
+      aria-label="Filtrar por estado"
+      (change)="onFilterChange('status', $any($event.target).value)">
+      <option value="">Todos los estados</option>
+      <option value="active">Activo</option>
+      <option value="expiring">Por vencer</option>
+      <option value="expired">Vencido</option>
+    </select>
+
+    <select
+      class="filter-select"
+      aria-label="Filtrar por plan"
+      (change)="onFilterChange('plan', $any($event.target).value)">
+      <option value="">Todos los planes</option>
+      <option value="Mensual">Mensual</option>
+      <option value="Trimestral">Trimestral</option>
+      <option value="Anual">Anual</option>
+    </select>
+  </div>
+
+  <!-- Table -->
+  <div class="table-card" role="region" aria-label="Lista de miembros">
+
+    <div class="table-cols table-head" role="row">
+      <span class="col-label" role="columnheader">Miembro</span>
+      <span class="col-label" role="columnheader">Contacto</span>
+      <span class="col-label" role="columnheader">Plan</span>
+      <span class="col-label" role="columnheader">Vencimiento</span>
+      <span class="col-label" role="columnheader">Estado</span>
+      <span class="col-label" role="columnheader">Acciones</span>
+    </div>
+
+    @for (member of paginated(); track member.id) {
+        <div class="table-cols table-row">
+
+          <!-- Member -->
+          <div class="member-cell">
+            <div
+              class="avatar"
+              [class]="member.avatarBg"
+              aria-hidden="true">
+              {{ member.initials }}
+            </div>
+            <div>
+              <div class="member-name">{{ member.name }} {{ member.lastName }}</div>
+              <div class="member-dni">DNI {{ member.dni }}</div>
+            </div>
+          </div>
+
+          <!-- Contact -->
+          <div>
+            <div class="contact-email">{{ member.email }}</div>
+            <div class="contact-phone">{{ member.phone }}</div>
+          </div>
+
+          <span class="cell-text">{{ member.plan }}</span>
+          <span class="cell-text">{{ member.expiresAt }}</span>
+
+          <span
+            class="badge"
+            [class]="statusClass[member.status]"
+            [attr.aria-label]="'Estado: ' + statusLabel[member.status]">
+            {{ statusLabel[member.status] }}
+          </span>
+
+          <!-- Actions -->
+          <div class="actions">
+            <button
+              type="button"
+              class="action-btn action-btn--view"
+              (click)="openViewModal(member)"
+              [attr.aria-label]="'Ver perfil de ' + member.name + ' ' + member.lastName">
+              <i class="ti ti-eye" aria-hidden="true"></i>
+            </button>
+            <button
+              type="button"
+              class="action-btn action-btn--edit"
+              (click)="openEditModal(member)"
+              [attr.aria-label]="'Editar ' + member.name + ' ' + member.lastName">
+              <i class="ti ti-edit" aria-hidden="true"></i>
+            </button>
+            <button
+              type="button"
+              class="action-btn action-btn--delete"
+              (click)="openDeleteModal(member)"
+              [attr.aria-label]="'Eliminar ' + member.name + ' ' + member.lastName">
+              <i class="ti ti-trash" aria-hidden="true"></i>
+            </button>
+          </div>
+
+        </div>
+    }
+
+    @if (paginated().length === 0) {
+      <div class="empty-state" role="status" aria-live="polite">
+        <i class="ti ti-users-off" aria-hidden="true"></i>
+        <p>No se encontraron miembros</p>
+      </div>
+    }
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-bar" aria-label="Paginación">
+    <span class="pagination-info">
+      Mostrando {{ paginated().length }} de {{ filtered().length }} miembros
+    </span>
+    <div class="pagination-pages" role="navigation" aria-label="Páginas">
+      <button
+        type="button"
+        class="page-btn"
+        (click)="goToPage(currentPage() - 1)"
+        [disabled]="currentPage() === 1"
+        aria-label="Página anterior">
+        <i class="ti ti-chevron-left" aria-hidden="true"></i>
+      </button>
+
+      @for (page of pages(); track page) {
+        <button
+          type="button"
+          class="page-btn"
+          [class.page-btn--active]="page === currentPage()"
+          (click)="goToPage(page)"
+          [attr.aria-current]="page === currentPage() ? 'page' : null"
+          [attr.aria-label]="'Página ' + page">
+          {{ page }}
+        </button>
+      }
+
+      <button
+        type="button"
+        class="page-btn"
+        (click)="goToPage(currentPage() + 1)"
+        [disabled]="currentPage() === totalPages()"
+        aria-label="Página siguiente">
+        <i class="ti ti-chevron-right" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+
+</main>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     MODAL — Create / Edit
+     ══════════════════════════════════════════════════════════════════════ -->
+@if (modalMode() === 'create' || modalMode() === 'edit') {
+  <div
+    class="modal-overlay"
+    [class.modal-enter]="!isClosing()"
+    [class.modal-exit]="isClosing()"
+    (click)="closeModal()"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="modalMode() === 'edit' ? 'Editar miembro' : 'Nuevo miembro'">
+
+    <div
+      class="modal-box"
+      [class.modal-box-enter]="!isClosing()"
+      [class.modal-box-exit]="isClosing()"
+      (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">
+            {{ modalMode() === 'edit' ? 'Editar miembro' : 'Nuevo miembro' }}
+          </div>
+          <div class="modal-subtitle">
+            {{ modalMode() === 'edit' ? 'Actualiza los datos del miembro' : 'Completa los datos del miembro' }}
+          </div>
+        </div>
+        <button
+          type="button"
+          class="modal-close"
+          (click)="closeModal()"
+          aria-label="Cerrar modal">
+          <i class="ti ti-x" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <!-- Form -->
+      <form [formGroup]="form" (ngSubmit)="saveMember()" novalidate>
+        <div class="form-body">
+
+          <div class="form-row">
+            <!-- Name -->
+            <div class="form-group">
+              <label class="form-label" for="field-name">
+                Nombres <span class="form-label-required" aria-hidden="true">*</span>
+              </label>
+              <input
+                id="field-name"
+                formControlName="name"
+                type="text"
+                placeholder="Ana"
+                class="form-control"
+                [class.form-control--error]="fieldError('name')"
+                autocomplete="given-name"
+                [attr.aria-invalid]="fieldError('name') || null"
+                aria-describedby="error-name" />
+              @if (fieldError('name')) {
+                <p id="error-name" class="form-error" role="alert">Ingresa un nombre válido</p>
+              }
+            </div>
+
+            <!-- Last name -->
+            <div class="form-group">
+              <label class="form-label" for="field-lastName">
+                Apellidos <span class="form-label-required" aria-hidden="true">*</span>
+              </label>
+              <input
+                id="field-lastName"
+                formControlName="lastName"
+                type="text"
+                placeholder="Martínez"
+                class="form-control"
+                [class.form-control--error]="fieldError('lastName')"
+                autocomplete="family-name"
+                [attr.aria-invalid]="fieldError('lastName') || null"
+                aria-describedby="error-lastName" />
+              @if (fieldError('lastName')) {
+                <p id="error-lastName" class="form-error" role="alert">Ingresa un apellido válido</p>
+              }
+            </div>
+          </div>
+
+          <!-- DNI -->
+          <div class="form-group">
+            <label class="form-label" for="field-dni">
+              DNI <span class="form-label-required" aria-hidden="true">*</span>
+            </label>
+            <input
+              id="field-dni"
+              formControlName="dni"
+              type="text"
+              placeholder="45123890"
+              maxlength="8"
+              inputmode="numeric"
+              class="form-control"
+              [class.form-control--error]="fieldError('dni')"
+              [attr.aria-invalid]="fieldError('dni') || null"
+              aria-describedby="error-dni" />
+            @if (fieldError('dni')) {
+              <p id="error-dni" class="form-error" role="alert">El DNI debe tener 8 dígitos</p>
+            }
+          </div>
+
+          <!-- Email -->
+          <div class="form-group">
+            <label class="form-label" for="field-email">
+              Correo electrónico <span class="form-label-required" aria-hidden="true">*</span>
+            </label>
+            <input
+              id="field-email"
+              formControlName="email"
+              type="email"
+              placeholder="ana@gmail.com"
+              class="form-control"
+              [class.form-control--error]="fieldError('email')"
+              autocomplete="email"
+              [attr.aria-invalid]="fieldError('email') || null"
+              aria-describedby="error-email" />
+            @if (fieldError('email')) {
+              <p id="error-email" class="form-error" role="alert">Ingresa un correo válido</p>
+            }
+          </div>
+
+          <!-- Phone -->
+          <div class="form-group">
+            <label class="form-label" for="field-phone">
+              Teléfono <span class="form-label-required" aria-hidden="true">*</span>
+            </label>
+            <input
+              id="field-phone"
+              formControlName="phone"
+              type="tel"
+              placeholder="+51 987 654 321"
+              class="form-control"
+              [class.form-control--error]="fieldError('phone')"
+              autocomplete="tel"
+              [attr.aria-invalid]="fieldError('phone') || null"
+              aria-describedby="error-phone" />
+            @if (fieldError('phone')) {
+              <p id="error-phone" class="form-error" role="alert">Ingresa un teléfono válido</p>
+            }
+          </div>
+
+          <!-- Plan -->
+          <div class="form-group">
+            <label class="form-label" for="field-plan">
+              Plan de membresía <span class="form-label-required" aria-hidden="true">*</span>
+            </label>
+            <select
+              id="field-plan"
+              formControlName="plan"
+              class="form-control"
+              [class.form-control--error]="fieldError('plan')"
+              [attr.aria-invalid]="fieldError('plan') || null"
+              aria-describedby="error-plan">
+              <option value="">Seleccionar plan</option>
+              <option value="Mensual">Mensual</option>
+              <option value="Trimestral">Trimestral</option>
+              <option value="Anual">Anual</option>
+            </select>
+            @if (fieldError('plan')) {
+              <p id="error-plan" class="form-error" role="alert">Selecciona un plan</p>
+            }
+          </div>
+
+        </div><!-- /form-body -->
+
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn--ghost"
+            (click)="closeModal()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn--primary">
+            {{ modalMode() === 'edit' ? 'Guardar cambios' : 'Guardar miembro' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     MODAL — View detail
+     ══════════════════════════════════════════════════════════════════════ -->
+@if (modalMode() === 'view' && selectedMember(); as member) {
+  <div
+    class="modal-overlay"
+    [class.modal-enter]="!isClosing()"
+    [class.modal-exit]="isClosing()"
+    (click)="closeModal()"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="'Perfil de ' + member.name + ' ' + member.lastName">
+
+    <div
+      class="modal-box"
+      [class.modal-box-enter]="!isClosing()"
+      [class.modal-box-exit]="isClosing()"
+      (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="modal-header">
+        <div class="view-avatar-row">
+          <div
+            class="avatar avatar--lg"
+            [class]="member.avatarBg"
+            aria-hidden="true">
+            {{ member.initials }}
+          </div>
+          <div>
+            <div class="modal-title">{{ member.name }} {{ member.lastName }}</div>
+            <span
+              class="badge"
+              [class]="statusClass[member.status]">
+              {{ statusLabel[member.status] }}
+            </span>
+          </div>
+        </div>
+        <button
+          type="button"
+          class="modal-close"
+          (click)="closeModal()"
+          aria-label="Cerrar">
+          <i class="ti ti-x" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <dl>
+          <div class="detail-row">
+            <i class="ti ti-id-badge detail-icon" aria-hidden="true"></i>
+            <div>
+              <dt class="detail-label">DNI</dt>
+              <dd class="detail-value">{{ member.dni }}</dd>
+            </div>
+          </div>
+          <div class="detail-row">
+            <i class="ti ti-mail detail-icon" aria-hidden="true"></i>
+            <div>
+              <dt class="detail-label">Correo electrónico</dt>
+              <dd class="detail-value">{{ member.email }}</dd>
+            </div>
+          </div>
+          <div class="detail-row">
+            <i class="ti ti-phone detail-icon" aria-hidden="true"></i>
+            <div>
+              <dt class="detail-label">Teléfono</dt>
+              <dd class="detail-value">{{ member.phone }}</dd>
+            </div>
+          </div>
+          <div class="detail-row">
+            <i class="ti ti-credit-card detail-icon" aria-hidden="true"></i>
+            <div>
+              <dt class="detail-label">Plan de membresía</dt>
+              <dd class="detail-value">{{ member.plan }}</dd>
+            </div>
+          </div>
+          <div class="detail-row">
+            <i class="ti ti-calendar detail-icon" aria-hidden="true"></i>
+            <div>
+              <dt class="detail-label">Vencimiento</dt>
+              <dd class="detail-value">{{ member.expiresAt }}</dd>
+            </div>
+          </div>
+        </dl>
+      </div>
+
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn--ghost"
+          (click)="closeModal()">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     MODAL — Delete confirmation
+     ══════════════════════════════════════════════════════════════════════ -->
+@if (modalMode() === 'delete' && selectedMember(); as member) {
+  <div
+    class="modal-overlay"
+    [class.modal-enter]="!isClosing()"
+    [class.modal-exit]="isClosing()"
+    (click)="closeModal()"
+    role="alertdialog"
+    aria-modal="true"
+    aria-labelledby="delete-title"
+    aria-describedby="delete-desc">
+
+    <div
+      class="modal-box modal-box--sm"
+      [class.modal-box-enter]="!isClosing()"
+      [class.modal-box-exit]="isClosing()"
+      (click)="$event.stopPropagation()">
+
+      <div class="modal-body" style="padding-top: 1.75rem; text-align: center;">
+        <div class="delete-icon-wrap" aria-hidden="true">
+          <i class="ti ti-alert-triangle"></i>
+        </div>
+        <p id="delete-title" class="delete-title">¿Eliminar miembro?</p>
+        <p id="delete-desc" class="delete-desc">
+          Esta acción eliminará a
+          <strong>{{ member.name }} {{ member.lastName }}</strong>
+          de forma permanente. No se puede deshacer.
+        </p>
+      </div>
+
+      <div class="modal-footer modal-footer--center" style="padding-bottom: 1.5rem;">
+        <button
+          type="button"
+          class="btn btn--ghost"
+          style="flex: 1;"
+          (click)="closeModal()">
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="btn btn--danger"
+          style="flex: 1;"
+          (click)="confirmDelete()">
+          Sí, eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+}
