@@ -34,27 +34,33 @@ export class AuthApi {
     return localStorage.getItem(this.TOKEN_KEY);
   }
 
-  getCurrentUser(token: string): UserResponse | null {
-    return null;
+  getCurrentUser(): Observable<UserResponse> {
+    return this.http.get<UserResponse>(`${this.apiUrl}/me`, {
+        headers: {
+          Authorization: `Bearer ${this.getLocalToken()}`,
+        },
+      });
   }
 
   isLoggedIn(): Observable<boolean> {
     const token = this.getLocalToken();
 
-    if(!token) {
+    if (!token) {
       return of(false);
     }
 
-    return this.http.get<UserResponse>(`${this.apiUrl}/me`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    }).pipe(
-      map(() => true),
-      catchError(() => {
-        this.logout();
-        return of(false)
+    return this.http
+      .get<UserResponse>(`${this.apiUrl}/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       })
-    );
+      .pipe(
+        map(() => true),
+        catchError(() => {
+          this.logout();
+          return of(false);
+        }),
+      );
   }
 }

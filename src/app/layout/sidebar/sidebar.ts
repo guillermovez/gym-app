@@ -1,5 +1,8 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthApi } from '../../auth/auth-api';
+import { map } from 'rxjs';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 interface SidebarItem {
   label: string;
@@ -30,11 +33,32 @@ interface UserProfile {
   },
 })
 export class Sidebar {
-  protected readonly user = signal<UserProfile>({
-    name: 'Jorge López',
-    role: 'Administrador',
-    initials: 'JL',
-  });
+  private readonly authApi = inject(AuthApi);
+  router = inject(Router);
+
+  protected readonly user = toSignal(
+    this.authApi.getCurrentUser().pipe(
+      map(
+        (userData): UserProfile => ({
+          name: userData.name,
+          role: 'Administrador',
+          initials: userData.name.split(' ')
+            .filter(w => w)
+            .map(w => w[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2),
+        }),
+      ),
+    ),
+    {
+      initialValue: {
+        name: 'Jhon Doe',
+        role: 'Administrador',
+        initials: 'JD',
+      },
+    },
+  );
 
   protected readonly sections = signal<SidebarSection[]>([
     {
@@ -71,6 +95,7 @@ export class Sidebar {
   ]);
 
   protected logout(): void {
-    console.log('Cerrar sesión');
+    this.authApi.logout();
+    this.router.navigate(['/']);
   }
 }
