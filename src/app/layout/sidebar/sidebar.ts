@@ -40,9 +40,9 @@ export class Sidebar {
     this.authApi.getCurrentUser().pipe(
       map(
         (userData): UserProfile => ({
-          name: userData.name,
+          name: `${userData.firstName} ${userData.lastName}`,
           role: 'Administrador',
-          initials: userData.name.split(' ')
+          initials: userData.firstName.split(' ')
             .filter(w => w)
             .map(w => w[0])
             .join('')

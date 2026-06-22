@@ -1,4 +1,5 @@
 export interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
+  token: string;
+  id: string;
+  tenant_id: string;
 }
