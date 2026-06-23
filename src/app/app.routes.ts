@@ -4,6 +4,7 @@ import { Layout } from './layout/layout';
 import { Dashboard } from './dashboard/dashboard';
 import { authGuard } from './auth/auth-guard';
 import { Member } from './member/member';
+import { BillingComponent } from './billing/billing.component';
 import { AccessControlComponent } from './member/access-control.component';
 
 export const routes: Routes = [
@@ -28,19 +29,19 @@ export const routes: Routes = [
         title: 'Miembros',
       },
       {
-        path: 'memberships', // 👈 AGREGADO TEMPORAL: Así evitamos el error NG04002
-        component: Member,   // Reutilizamos temporalmente el componente de miembros hasta que creen el suyo
-        title: 'Membresías',
-      },
-      {
-        path: 'configuration', // 👈 ¡NUEVO TEMPORAL!: Apunta a Dashboard para que no falle el Sidebar
+        path: 'configuration',
         component: Dashboard,
         title: 'Configuración',
       },
       {
-        path: 'access-control', 
+        path: 'access-control',
         component: AccessControlComponent,
         title: 'Control de Accesos',
+      },
+      {
+        path: 'memberships', // 🎯 Única declaración limpia
+        component: BillingComponent,
+        title: 'Caja y Finanzas',
       },
     ],
   },

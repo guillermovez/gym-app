@@ -1,0 +1,120 @@
+.billing-container {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.billing-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.finance-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.finance-table th, .finance-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.amount-cell {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #6c757d;
+}
+
+.empty-state i {
+  font-size: 4rem;
+  color: #28a745;
+  margin-bottom: 1rem;
+}
+
+/* Modal Estilos */
+.invoice-summary {
+  background: #f8f9fa;
+  padding: 1.25rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #007bff;
+}
+
+.total-badge {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed #dee2e6;
+}
+
+.total-badge h2 {
+  color: #28a745;
+  margin: 0;
+}
+
+.animation-fade {
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.tabs-container {
+  display: flex;
+  gap: 1rem;
+  border-bottom: 2px solid #dee2e6;
+  padding-bottom: 0.5rem;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #6c757d;
+  cursor: pointer;
+  border-radius: 6px 6px 0 0;
+  transition: all 0.2s ease-in-out;
+}
+
+.tab-btn:hover {
+  color: #007bff;
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+.tab-btn--active {
+  color: #007bff;
+  border-bottom: 3px solid #007bff;
+  background-color: rgba(0, 123, 255, 0.02);
+}
+
+.amount-success {
+  font-weight: bold;
+  color: #28a745;
+}
+
+.row-paid {
+  background-color: rgba(40, 167, 69, 0.01);
+}
+
+.btn--success:disabled {
+  background-color: #bdc3c7 !important;
+  color: #7f8c8d !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+}

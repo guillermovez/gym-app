@@ -44,37 +44,41 @@
     <section class="recent-clients">
       <div class="recent-clients__header">
         <h2 class="recent-clients__title">
-          Clientes recientes
+          Clientes Recientes Registrados
         </h2>
       </div>
 
       <div class="recent-clients__list">
-        @for (client of recentClients(); track client.email) {
-          <article class="client-item">
-            <div
-              class="client-avatar"
-              [class]="getAvatarClass(client.status)"
-            >
-              {{ client.initials }}
-            </div>
-
-            <div class="client-content">
-              <div class="client-content__name">
-                {{ client.name }}
+        @if (recentClients().length === 0) {
+          <p class="empty-text" style="padding: 1rem; color: #6c757d;">No hay clientes registrados en el sistema.</p>
+        } @else {
+          @for (client of recentClients(); track client.email) {
+            <article class="client-item">
+              <div
+                class="client-avatar"
+                [class]="getAvatarClass(client.status)"
+              >
+                {{ client.initials }}
               </div>
 
-              <div class="client-content__email">
-                {{ client.email }}
-              </div>
-            </div>
+              <div class="client-content">
+                <div class="client-content__name">
+                  {{ client.name }}
+                </div>
 
-            <span
-              class="client-status"
-              [class]="getStatusClass(client.status)"
-            >
-              {{ getStatusLabel(client.status) }}
-            </span>
-          </article>
+                <div class="client-content__email">
+                  {{ client.email }}
+                </div>
+              </div>
+
+              <span
+                class="client-status"
+                [class]="getStatusClass(client.status)"
+              >
+                {{ getStatusLabel(client.status) }}
+              </span>
+            </article>
+          }
         }
       </div>
     </section>

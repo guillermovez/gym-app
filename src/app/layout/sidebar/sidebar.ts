@@ -82,6 +82,11 @@ export class Sidebar {
           route: '/app/memberships',
         },
         {
+          label: 'Caja y Finanzas',      // 🔄 ACTUALIZADO: Nombre real de tu nueva pantalla
+          icon: 'ti-cash-banknote',      // 🔄 ACTUALIZADO: Ícono de billete/dinero de Tabler Icons
+          route: '/app/memberships',     // Se mantiene apuntando aquí para engranar con tus rutas hijas
+        },
+        {
           label: 'Control de Accesos', // 👈 AGREGADO
           icon: 'ti-fingerprint',       // Ícono de huella digital/acceso de Tabler Icons
           route: '/app/access-control',

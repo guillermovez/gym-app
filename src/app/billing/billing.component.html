@@ -1,0 +1,186 @@
+<div class="billing-container">
+  
+  <header class="billing-header">
+    <div>
+      <h2>Módulo de Caja y Finanzas</h2>
+      <p class="subtitle">Gestión de cuentas por cobrar y control de morosidad global</p>
+    </div>
+  </header>
+
+  <div class="tabs-container">
+    <button type="button" class="tab-btn" [class.tab-btn--active]="activeTab() === 'pending'" (click)="activeTab.set('pending')">
+      Status de Cuentas por Cobrar ({{ enrichedInvoices().length }})
+    </button>
+    <button type="button" class="tab-btn" [class.tab-btn--active]="activeTab() === 'history'" (click)="activeTab.set('history')">
+      Historial de Ingresos / Caja ({{ enrichedPayments().length }})
+    </button>
+  </div>
+
+@if (activeTab() === 'pending') {
+    <div class="billing-card animation-fade">
+      <h3>Cuotas Pendientes y Morosas</h3>
+      <div class="table-responsive">
+        @if (enrichedInvoices().length === 0) {
+          <div class="empty-state">
+            <i class="ti ti-circle-check-toggle"></i>
+            <p>¡Excelente! La caja está al día. No hay cuotas morosas registradas hoy.</p>
+          </div>
+        } @else {
+          <table class="finance-table">
+            <thead>
+              <tr>
+                <th>Nro. Factura</th>
+                <th>Miembro / Cliente</th>
+                <th>DNI</th>
+                <th>Monto</th>
+                <th>Vencimiento</th>
+                <th>Estado</th>
+                <th style="text-align: center;">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (invoice of enrichedInvoices(); track invoice.id) {
+                <tr>
+                  <td><code>{{ invoice.invoiceNumber }}</code></td>
+                  <td><strong>{{ invoice.clientName }}</strong></td>
+                  <td>{{ invoice.clientDni }}</td>
+                  <td class="amount-cell">S/ {{ invoice.amount | number:'1.2-2' }}</td>
+                  <td>{{ invoice.dueDate | date:'dd/MM/yyyy' }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="invoice.status === 'overdue' ? 'badge-danger' : 'badge-warning'">
+                      {{ invoice.status === 'overdue' ? 'Moroso' : 'Pendiente' }}
+                    </span>
+                  </td>
+                  <td style="text-align: center;">
+                    <button 
+                      type="button" 
+                      class="btn btn--success btn-sm" 
+                      [disabled]="!canCollect(invoice.dueDate)"
+                      (click)="openPaymentModal(invoice)"
+                      [title]="canCollect(invoice.dueDate) ? 'Procesar cobro en caja' : 'Bloqueado: La cuota vence en más de 5 días'"
+                    >
+                      💵 Cobrar
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    </div>
+  }
+
+  @if (activeTab() === 'history') {
+    <div class="billing-card animation-fade">
+      <h3>Historial de Transacciones Exitosas</h3>
+      <div class="table-responsive">
+        @if (enrichedPayments().length === 0) {
+          <div class="empty-state">
+            <i class="ti ti-cash-off"></i>
+            <p>Aún no se han procesado cobros en la caja durante este turno.</p>
+          </div>
+        } @else {
+          <table class="finance-table">
+            <thead>
+              <tr>
+                <th>Fecha de Pago</th>
+                <th>Miembro / Cliente</th>
+                <th>DNI</th>
+                <th>Método</th>
+                <th>Nro. Referencia</th>
+                <th>Monto Recaudado</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (payment of enrichedPayments(); track payment.id) {
+                <tr class="row-paid">
+                  <td>{{ payment.paymentDate | date:'dd/MM/yyyy' }}</td>
+                  <td><strong>{{ payment.clientName }}</strong></td>
+                  <td>{{ payment.clientDni }}</td>
+                  <td>{{ payment.paymentMethod === 'cash' ? '💵 Efectivo' : '🏦 Transferencia' }}</td>
+                  <td><code>{{ payment.referenceNumber || 'N/A (Caja)' }}</code></td>
+                  <td class="amount-success">S/ {{ payment.amount | number:'1.2-2' }}</td>
+                  <td>
+                    <span class="badge badge-success">Completado</span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    </div>
+  }
+
+  @if (isPaymentModalOpen() && selectedInvoice(); as invoice) {
+    <div class="modal-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+      <div class="modal-box" style="background: white; padding: 2rem; border-radius: 12px; width: 100%; max-width: 500px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+        <header class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <h3 style="margin: 0;">Procesar Cobro en Caja</h3>
+          <button type="button" class="close-btn" (click)="closePaymentModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+        </header>
+        
+        <div class="modal-body">
+          <div class="invoice-summary">
+            <p><strong>Documento:</strong> {{ invoice.invoiceNumber }}</p>
+            <p><strong>Cliente:</strong> {{ invoice.clientName }}</p>
+            <div class="total-badge">
+              <span>Total a Cobrar:</span>
+              <h2>S/ {{ invoice.amount | number:'1.2-2' }}</h2>
+            </div>
+          </div>
+
+          <form (ngSubmit)="processPayment()">
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label for="method" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Método de Pago</label>
+              <select id="method" name="paymentMethod" class="form-control" [(ngModel)]="paymentMethod" style="width: 100%; padding: 0.75rem; border: 1px solid #dee2e6; border-radius: 6px;">
+                <option value="cash">💵 Efectivo (Caja Física)</option>
+                <option value="transfer">🏦 Transferencia Bancaria / QR</option>
+              </select>
+            </div>
+
+            @if (paymentMethod === 'transfer') {
+              <div class="form-group animation-fade" style="margin-bottom: 1rem;">
+                <label for="reference" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Número de Operación / Referencia</label>
+                <input
+                  type="text"
+                  id="reference"
+                  name="referenceNumber"
+                  class="form-control"
+                  placeholder="Ej: Op. 458962"
+                  [(ngModel)]="referenceNumber"
+                  style="width: 100%; padding: 0.75rem; border: 1px solid #dee2e6; border-radius: 6px;"
+                  required
+                />
+              </div>
+            }
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+              <label for="notes" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Notas de Caja (Opcional)</label>
+              <textarea
+                id="notes"
+                name="notes"
+                class="form-control"
+                rows="2"
+                placeholder="Ej: Pago de cuota mensual."
+                [(ngModel)]="notes"
+                style="width: 100%; padding: 0.75rem; border: 1px solid #dee2e6; border-radius: 6px; resize: none;"
+              ></textarea>
+            </div>
+
+            <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 1rem;">
+              <button type="button" class="btn btn--ghost" (click)="closePaymentModal()" [disabled]="isSubmitting()">
+                Cancelar
+              </button>
+              <button type="submit" class="btn btn--primary" [disabled]="isSubmitting()" style="background: #28a745; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; cursor: pointer;">
+                {{ isSubmitting() ? 'Registrando...' : 'Confirmar Recibo de Dinero' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  }
+</div>
