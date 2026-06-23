@@ -1,10 +1,13 @@
-import { Injectable, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable, tap } from 'rxjs';
+import { environment } from '../../environments/environment';
 
-export type MemberStatus = 'active' | 'expiring' | 'expired';
+export type MemberStatus = 'active' | 'expiring' | 'expired' | 'inactive';
 export type MemberPlan = 'Mensual' | 'Trimestral' | 'Anual';
 
 export interface MemberRecord {
-  id: number;
+  id: string; 
   initials: string;
   name: string;
   lastName: string;
@@ -29,164 +32,122 @@ export interface CreateMemberDto {
 
 export type UpdateMemberDto = CreateMemberDto;
 
-// ── Avatar colour palette ────────────────────────────────────────────────────
-const AVATAR_COLORS: { bg: string; text: string }[] = [
+const AVATAR_COLORS = [
   { bg: 'avatar-blue', text: 'avatar-blue-text' },
   { bg: 'avatar-amber', text: 'avatar-amber-text' },
   { bg: 'avatar-green', text: 'avatar-green-text' },
   { bg: 'avatar-red', text: 'avatar-red-text' },
   { bg: 'avatar-purple', text: 'avatar-purple-text' },
-  { bg: 'avatar-teal', text: 'avatar-teal-text' },
 ];
 
-// ── Seed data ────────────────────────────────────────────────────────────────
-const SEED_MEMBERS: MemberRecord[] = [
-  {
-    id: 1,
-    initials: 'AM',
-    name: 'Ana',
-    lastName: 'Martínez',
-    dni: '45123890',
-    email: 'ana.martinez@gmail.com',
-    phone: '+51 987 654 321',
-    plan: 'Mensual',
-    expiresAt: '10 jun 2026',
-    status: 'active',
-    avatarBg: 'avatar-blue',
-    avatarText: 'avatar-blue-text',
-  },
-  {
-    id: 2,
-    initials: 'CR',
-    name: 'Carlos',
-    lastName: 'Ríos',
-    dni: '32456712',
-    email: 'carlos.rios@outlook.com',
-    phone: '+51 912 345 678',
-    plan: 'Trimestral',
-    expiresAt: '02 jun 2026',
-    status: 'expiring',
-    avatarBg: 'avatar-amber',
-    avatarText: 'avatar-amber-text',
-  },
-  {
-    id: 3,
-    initials: 'LV',
-    name: 'Lucía',
-    lastName: 'Vargas',
-    dni: '71234567',
-    email: 'lucia.vargas@gmail.com',
-    phone: '+51 956 789 012',
-    plan: 'Anual',
-    expiresAt: '28 may 2026',
-    status: 'expired',
-    avatarBg: 'avatar-red',
-    avatarText: 'avatar-red-text',
-  },
-  {
-    id: 4,
-    initials: 'RP',
-    name: 'Rodrigo',
-    lastName: 'Paredes',
-    dni: '60987654',
-    email: 'r.paredes@hotmail.com',
-    phone: '+51 934 567 890',
-    plan: 'Mensual',
-    expiresAt: '15 jun 2026',
-    status: 'active',
-    avatarBg: 'avatar-green',
-    avatarText: 'avatar-green-text',
-  },
-  {
-    id: 5,
-    initials: 'MF',
-    name: 'María',
-    lastName: 'Flores',
-    dni: '48765432',
-    email: 'm.flores@gmail.com',
-    phone: '+51 978 123 456',
-    plan: 'Trimestral',
-    expiresAt: '30 jul 2026',
-    status: 'active',
-    avatarBg: 'avatar-purple',
-    avatarText: 'avatar-purple-text',
-  },
-];
+// 🔄 Diccionario para normalizar los Enums de Java al Frontend
+const PLAN_MAP: Record<string, MemberPlan> = {
+  'MENSUAL': 'Mensual',
+  'TRIMESTRAL': 'Trimestral',
+  'ANUAL': 'Anual',
+  'Mensual': 'Mensual',
+  'Trimestral': 'Trimestral',
+  'Anual': 'Anual'
+};
 
 @Injectable({
   providedIn: 'root',
 })
 export class MemberApi {
-  private _members = signal<MemberRecord[]>(structuredClone(SEED_MEMBERS));
-  private _nextId = signal(SEED_MEMBERS.length + 1);
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = `${environment.apiUrl}/api/members`; 
 
-  /** Read-only snapshot of all members. */
+  private _members = signal<MemberRecord[]>([]);
   readonly members = this._members.asReadonly();
 
-  // ── Helpers ──────────────────────────────────────────────────────────────
+  private getHeaders(): HttpHeaders {
+    const tenantId = localStorage.getItem('tenant_id') || '';
+    const token = localStorage.getItem('boxcontroll_token') || '';
+    return new HttpHeaders({
+      'X-Tenant-Id': tenantId,
+      'Authorization': `Bearer ${token}`
+    });
+  }
 
   private getInitials(name: string, lastName: string): string {
     return `${name.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   }
 
-  private pickColor(id: number): { bg: string; text: string } {
-    return AVATAR_COLORS[id % AVATAR_COLORS.length];
+  private pickColor(id: string): { bg: string; text: string } {
+    const charCodeSum = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return AVATAR_COLORS[charCodeSum % AVATAR_COLORS.length];
   }
 
-  private formatExpiry(plan: MemberPlan): string {
-    const date = new Date();
-    const months = plan === 'Mensual' ? 1 : plan === 'Trimestral' ? 3 : 12;
-    date.setMonth(date.getMonth() + months);
-    return date.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
-  }
-
-  // ── CRUD API (mock — synchronous for now, easy to swap for HTTP later) ───
-
-  create(dto: CreateMemberDto): MemberRecord {
-    const id = this._nextId();
-    const color = this.pickColor(id);
-
-    const record: MemberRecord = {
-      id,
-      initials: this.getInitials(dto.name, dto.lastName),
-      name: dto.name,
-      lastName: dto.lastName,
-      dni: dto.dni,
-      email: dto.email,
-      phone: dto.phone,
-      plan: dto.plan,
-      expiresAt: this.formatExpiry(dto.plan),
-      status: 'active',
-      avatarBg: color.bg,
-      avatarText: color.text,
-    };
-
-    this._members.update((list) => [record, ...list]);
-    this._nextId.update((n) => n + 1);
-    return record;
-  }
-
-  update(id: number, dto: UpdateMemberDto): void {
-    this._members.update((list) =>
-      list.map((m) =>
-        m.id === id
-          ? {
+  /** Carga los miembros desde la base de datos y refresca la señal */
+  loadMembers(): void {
+    this.http.get<MemberRecord[]>(this.apiUrl, { headers: this.getHeaders() })
+      .subscribe({
+        next: (data) => {
+          const enriched = data.map(m => {
+            const color = this.pickColor(m.id); 
+            return {
               ...m,
-              initials: this.getInitials(dto.name, dto.lastName),
-              name: dto.name,
-              lastName: dto.lastName,
-              dni: dto.dni,
-              email: dto.email,
-              phone: dto.phone,
-              plan: dto.plan,
-              expiresAt: this.formatExpiry(dto.plan),
-            }
-          : m,
-      ),
+              plan: PLAN_MAP[m.plan] || 'Mensual', // 🔄 Normalización cosmética segura
+              initials: this.getInitials(m.name, m.lastName),
+              avatarBg: color.bg,     
+              avatarText: color.text   
+            };
+          });
+          this._members.set(enriched);
+        },
+        error: (err) => console.error('Error al traer miembros de Postgres:', err)
+      });
+  }
+
+ create(dto: CreateMemberDto): Observable<MemberRecord> {
+    return this.http.post<MemberRecord>(this.apiUrl, dto, { headers: this.getHeaders() }).pipe(
+      tap((newMember) => {
+        // 🕵️‍♂️ ¡LA TRAMPA! Corre el sistema, abre la consola (F12) y mira qué sale aquí:
+        console.log('🔴 RESPUESTA REAL DEL BACKEND AL CREAR:', newMember);
+
+        const processed: MemberRecord = {
+          ...newMember,
+          plan: PLAN_MAP[newMember.plan] || 'Mensual',
+          initials: this.getInitials(newMember.name, newMember.lastName),
+          avatarBg: this.pickColor(newMember.id).bg,
+          avatarText: this.pickColor(newMember.id).text as any
+        };
+        this._members.update((list) => [processed, ...list]);
+      })
+    );
+  }
+  
+// 🔄 OPTIMIZADO: Ahora recibe el Member actualizado desde Java en lugar de void
+  update(id: string, dto: UpdateMemberDto): Observable<MemberRecord> {
+    return this.http.put<MemberRecord>(`${this.apiUrl}/${id}`, dto, { headers: this.getHeaders() }).pipe(
+      tap((updatedMember) => {
+        // Sincronizamos los cambios REALES devueltos por el servidor (incluyendo el expiresAt calculado)
+        this._members.update((list) =>
+          list.map((m) => m.id === id ? { 
+            ...m, 
+            ...updatedMember, // 👈 Pisamos con lo que calculó Java
+            plan: PLAN_MAP[updatedMember.plan] || 'Mensual', // Normalizamos formato texto
+            initials: this.getInitials(updatedMember.name, updatedMember.lastName) 
+          } : m)
+        );
+      })
     );
   }
 
-  delete(id: number): void {
-    this._members.update((list) => list.filter((m) => m.id !== id));
+  // 📁 En tu member-api.ts — Modifica el método delete
+
+  delete(id: string): Observable<MemberRecord> {
+    // 🔄 Cambiado a Observable<MemberRecord> para recibir la respuesta de Java
+    return this.http.delete<MemberRecord>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() }).pipe(
+      tap((updatedMember) => {
+        // 🔥 Sincronizamos el cambio de estado en la señal sin eliminar al miembro del array visual
+        this._members.update((list) =>
+          list.map((m) => m.id === id ? { 
+            ...m, 
+            status: updatedMember.status // Actualiza a 'active' o 'inactive' según responda Java
+          } : m)
+        );
+      })
+    );
   }
 }

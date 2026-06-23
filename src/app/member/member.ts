@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MemberApi, MemberRecord, MemberStatus } from './member-api';
@@ -12,10 +12,12 @@ type ModalMode = 'create' | 'edit' | 'view' | 'delete' | null;
   styleUrl: './member.scss',
   host: { class: 'member-host' },
 })
-export class Member {
+export class Member implements OnInit{
   // ── Dependencies ─────────────────────────────────────────────────────────
   private readonly api = inject(MemberApi);
   private readonly fb = inject(FormBuilder);
+
+
 
   // ── UI state ─────────────────────────────────────────────────────────────
   readonly modalMode = signal<ModalMode>(null);
@@ -62,12 +64,14 @@ export class Member {
     active: 'Activo',
     expiring: 'Por vencer',
     expired: 'Vencido',
+    inactive: 'Inactivo'
   };
 
   readonly statusClass: Record<MemberStatus, string> = {
     active: 'badge badge--active',
     expiring: 'badge badge--expiring',
     expired: 'badge badge--expired',
+    inactive: 'badge--grey'
   };
 
   // ── Form ─────────────────────────────────────────────────────────────────
@@ -86,6 +90,11 @@ export class Member {
   }
 
   // ── Modal actions ─────────────────────────────────────────────────────────
+
+    ngOnInit(): void {
+    this.api.loadMembers();
+  }
+
   openCreateModal(): void {
     this.form.reset();
     this.submitted.set(false);
@@ -120,8 +129,12 @@ export class Member {
   confirmDelete(): void {
     const member = this.selectedMember();
     if (!member) return;
-    this.api.delete(member.id);
-    this.closeModal();
+    
+    // 🔥 Cambiado a suscripción HTTP
+    this.api.delete(member.id).subscribe({
+      next: () => this.closeModal(),
+      error: (err) => console.error('Error al eliminar:', err)
+    });
   }
 
   saveMember(): void {
@@ -131,13 +144,23 @@ export class Member {
     const { name, lastName, dni, email, phone, plan } = this.form.value;
 
     if (this.modalMode() === 'edit' && this.selectedMember()) {
-      this.api.update(this.selectedMember()!.id, { name, lastName, dni, email, phone, plan });
+      // 🔥 Cambiado a suscripción HTTP
+      this.api.update(this.selectedMember()!.id, { name, lastName, dni, email, phone, plan })
+        .subscribe({
+          next: () => this.closeModal(),
+          error: (err) => console.error('Error al actualizar:', err)
+        });
     } else {
-      this.api.create({ name, lastName, dni, email, phone, plan });
-      this.currentPage.set(1);
+      // 🔥 Cambiado a suscripción HTTP
+      this.api.create({ name, lastName, dni, email, phone, plan })
+        .subscribe({
+          next: () => {
+            this.currentPage.set(1);
+            this.closeModal();
+          },
+          error: (err) => console.error('Error al crear:', err)
+        });
     }
-
-    this.closeModal();
   }
 
   closeModal(): void {
