@@ -24,6 +24,7 @@ interface UserProfile {
 
 @Component({
   selector: 'app-sidebar',
+  standalone: true, // Asegurar si es standalone
   imports: [RouterLink, RouterLinkActive],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.scss',
@@ -79,6 +80,11 @@ export class Sidebar {
           label: 'Membresías',
           icon: 'ti-id',
           route: '/app/memberships',
+        },
+        {
+          label: 'Control de Accesos', // 👈 AGREGADO
+          icon: 'ti-fingerprint',       // Ícono de huella digital/acceso de Tabler Icons
+          route: '/app/access-control',
         },
       ],
     },

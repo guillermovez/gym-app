@@ -1,0 +1,77 @@
+<div class="access-container">
+  
+  <div class="access-card control-panel">
+    <h2>Control de Accesos</h2>
+    <p class="subtitle">Ingrese o escanee el DNI del miembro</p>
+
+    <form (ngSubmit)="onSubmitCheckIn()" #checkInForm="ngForm">
+      <div class="form-group">
+        <input
+          type="text"
+          name="dni"
+          class="form-control checkin-input"
+          placeholder="Ej. 72145689"
+          [(ngModel)]="dniInput"
+          required
+          pattern="^\d{8}$"
+          maxlength="8"
+          autofocus
+          autocomplete="off"
+          [disabled]="loading()"
+        />
+      </div>
+      <button type="submit" class="btn btn--primary btn-block" [disabled]="checkInForm.invalid || loading()">
+        {{ loading() ? 'Procesando...' : 'Marcar Ingreso' }}
+      </button>
+    </form>
+
+    @if (lastResult(); as result) {
+      <div class="result-banner" [ngClass]="result.allowed ? 'banner-success' : 'banner-danger'">
+        <div class="banner-icon">
+          <i class="ti" [ngClass]="result.allowed ? 'ti-circle-check' : 'ti-circle-x'"></i>
+        </div>
+        <div class="banner-info">
+          <h3>{{ result.memberName }}</h3>
+          <p class="status-msg">{{ result.message }}</p>
+          <span class="time-stamp">Marcación: {{ result.accessTime | date:'shortTime' }}</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="access-card history-panel">
+    <h3>Ingresos Recientes</h3>
+    
+    <div class="table-responsive">
+      @if (attendanceHistory().length === 0) {
+        <p class="empty-msg">No hay registros de asistencia hoy.</p>
+      } @else {
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>Hora</th>
+              <th>Miembro</th>
+              <th>DNI</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (log of attendanceHistory(); track log.id) {
+              <tr [class.row-denied]="!log.allowed">
+                <td>{{ log.accessTime | date:'mediumTime' }}</td>
+                <td><strong>{{ log.memberName }}</strong></td>
+                <td>{{ log.documentNumber }}</td>
+                <td>
+                  <span class="badge" [ngClass]="log.allowed ? 'badge-success' : 'badge-danger'">
+                    {{ log.allowed ? 'Permitido' : 'Bloqueado' }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  </div>
+
+</div>
